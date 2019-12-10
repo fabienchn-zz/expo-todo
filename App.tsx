@@ -3,9 +3,14 @@ import {StyleSheet, AsyncStorage, Alert } from 'react-native';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { Root, Toast, Container, Input, Item, Content, Header, Title, Right, Body, ListItem, Text, CheckBox, Button } from 'native-base';
+import {
+  Root, Toast, Container, Content, Header,
+  Title, Right, Body, Text, Button
+} from 'native-base';
+import TodosList from "./src/TodosList";
+import AddTodoInput from "./src/AddTodoInput";
 
-interface ITodo {
+export interface ITodo {
   id: number;
   name: string;
   done: boolean;
@@ -15,7 +20,6 @@ export default function App(): JSX.Element {
   const [text, setText] = useState('');
   const [todos, setTodos] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [showToast] = useState(false);
 
   const loadDependencies = async () => {
     await Font.loadAsync({
@@ -41,10 +45,6 @@ export default function App(): JSX.Element {
     fetchTodos();
   }, []);
 
-  useEffect(() => {
-    setText('blabla');
-  }, []);
-
   if (!loaded) {
     return (<AppLoading />);
   }
@@ -63,6 +63,7 @@ export default function App(): JSX.Element {
     };
 
     setTodos([...todos, newTodo]);
+    setText('');
 
     AsyncStorage.setItem('todos', JSON.stringify(todos));
 
@@ -141,36 +142,18 @@ export default function App(): JSX.Element {
         </Header>
 
         <Content padder>
-          <Button onPress={confirmDeleteAllTodos} disabled={text === ''} danger>
-            <Text>Delete All Todos</Text>
-          </Button>
+          <AddTodoInput text={text} setText={setText} addTodo={addTodo} />
+          <TodosList
+            todos={todos}
+            todoToggleDone={todoToggleDone}
+            deleteTodo={deleteTodo}
+          />
 
-          <Item last>
-            <Input
-                value={text}
-                placeholder="New todo..."
-                onChangeText={(text: string) => setText(text)}
-                style={styles.textArea}
-            />
-          </Item>
-
-          <Button onPress={addTodo} disabled={text === ''}>
-            <Text>Add</Text>
-          </Button>
-
-          {todos.map((todo: ITodo): JSX.Element => (
-              <ListItem key={todo.id}>
-                <CheckBox checked={todo.done} onPress={() => todoToggleDone(todo.id)} />
-                <Body>
-                  <Text style={todo.done ? styles.strikedText : null}>{todo.name}</Text>
-                </Body>
-                <Right>
-                  <Button onPress={() => deleteTodo(todo.id)} transparent dark bordered small>
-                    <Text>X</Text>
-                  </Button>
-                </Right>
-              </ListItem>
-          ))}
+          {todos.length > 0 && (
+            <Button onPress={confirmDeleteAllTodos} danger small>
+              <Text>Delete All Todos</Text>
+            </Button>
+          )}
         </Content>
       </Container>
     </Root>
@@ -181,11 +164,5 @@ const styles = StyleSheet.create({
   header: {
     height: 80,
     paddingTop: 30,
-  },
-  textArea: {
-    width: '100%',
-  },
-  strikedText: {
-    textDecorationLine: 'line-through',
-  },
+  }
 });
