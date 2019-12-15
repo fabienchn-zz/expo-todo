@@ -2,13 +2,30 @@ import React, { useState, useEffect } from 'react';
 import {StyleSheet, AsyncStorage, Alert } from 'react-native';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
-import { Ionicons } from '@expo/vector-icons';
+import firebase from 'firebase';
+import '@firebase/firestore';
 import {
   Root, Toast, Container, Content, Header,
   Title, Right, Body, Text, Button
 } from 'native-base';
-import TodosList from "./src/TodosList";
-import AddTodoInput from "./src/AddTodoInput";
+import { Ionicons } from '@expo/vector-icons';
+import ignoreWarnings from 'react-native-ignore-warnings';
+
+ignoreWarnings('Setting a timer');
+
+import TodosList from './src/TodosList';
+import AddTodoInput from './src/AddTodoInput';
+
+// // Initialize Firebase
+firebase.initializeApp({
+  apiKey: '',
+  authDomain: 'todo-list-93697.firebaseapp.com',
+  databaseURL: 'https://todo-list-93697.firebaseio.com',
+  storageBucket: 'todo-list-93697.appspot.com',
+  projectId: 'todo-list-93697',
+});
+
+const dbh = firebase.firestore();
 
 export interface ITodo {
   id: number;
@@ -68,10 +85,10 @@ export default function App(): JSX.Element {
     AsyncStorage.setItem('todos', JSON.stringify(todos));
 
     Toast.show({
-      text: "Todo Added !",
-      buttonText: "Okay",
-      buttonTextStyle: { color: "#008000" },
-      buttonStyle: { backgroundColor: "#5cb85c" },
+      text: 'Todo Added !',
+      buttonText: 'Okay',
+      buttonTextStyle: { color: '#008000' },
+      buttonStyle: { backgroundColor: '#5cb85c' },
     });
   };
 
@@ -92,10 +109,10 @@ export default function App(): JSX.Element {
     AsyncStorage.setItem('todos', JSON.stringify([]));
 
     Toast.show({
-      text: "All Todos deleted !",
-      buttonText: "Okay",
-      buttonTextStyle: { color: "#008000" },
-      buttonStyle: { backgroundColor: "#5cb85c" },
+      text: 'All Todos deleted !',
+      buttonText: 'Okay',
+      buttonTextStyle: { color: '#008000' },
+      buttonStyle: { backgroundColor: '#5cb85c' },
     });
   };
 
@@ -107,10 +124,10 @@ export default function App(): JSX.Element {
     AsyncStorage.setItem('todos', JSON.stringify(todosToKeep));
 
     Toast.show({
-      text: "Deleted 1 Todo !",
-      buttonText: "Okay",
-      buttonTextStyle: { color: "#008000" },
-      buttonStyle: { backgroundColor: "#5cb85c" },
+      text: 'Deleted 1 Todo !',
+      buttonText: 'Okay',
+      buttonTextStyle: { color: '#008000' },
+      buttonStyle: { backgroundColor: '#5cb85c' },
     });
   };
 
@@ -124,10 +141,10 @@ export default function App(): JSX.Element {
     AsyncStorage.setItem('todos', JSON.stringify(newTodos));
 
     Toast.show({
-      text: "Todo done/undone !",
-      buttonText: "Okay",
-      buttonTextStyle: { color: "#008000" },
-      buttonStyle: { backgroundColor: "#5cb85c" },
+      text: 'Todo done/undone !',
+      buttonText: 'Okay',
+      buttonTextStyle: { color: '#008000' },
+      buttonStyle: { backgroundColor: '#5cb85c' },
     });
   };
 

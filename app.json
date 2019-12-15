@@ -28,7 +28,7 @@
     },
     "description": "",
     "android": {
-      "package": "com.todolist"
+      "package": "com.fabienchn.todolist"
     }
   }
 }
