@@ -2,21 +2,21 @@ import React from "react";
 import { Body, Button, CheckBox, ListItem, Right, Text } from "native-base";
 import { StyleSheet } from "react-native";
 
-import { ITodo } from '../../App';
-
 interface IProps {
-  todos: ITodo[];
-  todoToggleDone: (id: number) => void;
-  deleteTodo: (id: number) => void;
+  todos: any[];
+  todoToggleDone: (id: string) => void;
+  deleteTodo: (id: string) => void;
 }
 
 const TodosList = ({ todos, todoToggleDone, deleteTodo }: IProps): JSX.Element => (
   <>
-    {todos.map((todo: ITodo): JSX.Element => (
+    {todos.map((todo): JSX.Element => (
       <ListItem key={todo.id}>
-        <CheckBox checked={todo.done} onPress={() => todoToggleDone(todo.id)} />
+        <CheckBox checked={todo.data().done} onPress={() => todoToggleDone(todo.id)} />
         <Body>
-          <Text style={todo.done ? styles.strikedText : null}>{todo.name}</Text>
+          <Text style={todo.data().done ? styles.strikedText : null}>
+            {todo.data().name}
+          </Text>
         </Body>
         <Right>
           <Button onPress={() => deleteTodo(todo.id)} transparent dark bordered small>

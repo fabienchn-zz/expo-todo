@@ -2,24 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
-import firebase from 'firebase';
 import '@firebase/firestore';
 import { Root, Container, Content, Header, Title, Right, Body, Icon } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 import ignoreWarnings from 'react-native-ignore-warnings';
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 
-import { firebaseConfig } from "./config";
+import firebase from "./firebase";
 import TodoScreen from "./src/screens/TodoScreen";
 import LoadingScreen from "./src/screens/LoadingScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 
 ignoreWarnings('Setting a timer');
-
-// // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-
-const dbh = firebase.firestore();
 
 const AppSwitchNavigator = createSwitchNavigator({
   LoadingScreen: LoadingScreen,
@@ -66,7 +60,7 @@ export default function App(): JSX.Element {
             <Title>Expo Todo</Title>
           </Body>
           <Right>
-            <Icon name="logout" onPress={logout} />
+            <Icon name="logout" type="AntDesign" style={{ color: 'white' }} onPress={logout} />
           </Right>
         </Header>
 

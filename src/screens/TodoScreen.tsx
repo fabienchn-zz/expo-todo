@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { AsyncStorage, Alert } from 'react-native';
-import { Toast, Text, Button } from 'native-base';
+import React, {useEffect, useState} from 'react';
+import {Alert, AsyncStorage} from 'react-native';
+import {Button, Text} from 'native-base';
 
 import TodosList from '../components/TodosList';
 import AddTodoInput from '../components/AddTodoInput';
+import firebase from "../../firebase";
+import showToast, {ToastType} from "../utils/showToast";
 
 export interface ITodo {
   id: number;
   name: string;
   done: boolean;
+  created_at: string;
 }
+
+const dbh = firebase.firestore();
 
 export default function TodoScreen(): JSX.Element {
   const [text, setText] = useState('');
@@ -18,6 +23,25 @@ export default function TodoScreen(): JSX.Element {
   const fetchTodos = async (): Promise<void> => {
     const storedTodos = await AsyncStorage.getItem('todos');
 
+    const data = await firebase.auth().currentUser;
+
+    dbh.collection('tasks').where('userUID', '==', data.uid).onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        switch (change.type) {
+          case "added":
+            setTodos([...todos, change.doc]);
+            break;
+          case "modified":
+            const todosToKeep = todos.filter(t => t.id !== change.doc.id);
+            setTodos([...todosToKeep, change.doc]);
+            break;
+          case "removed":
+            setTodos(todos.filter(t => t.id !== change.doc.id));
+            break;
+        }
+      });
+    });
+
     setTodos(JSON.parse(storedTodos) || []);
   };
 
@@ -25,30 +49,29 @@ export default function TodoScreen(): JSX.Element {
     fetchTodos();
   }, []);
 
-  const addTodo = (): void => {
+  const addTodo = async (): Promise<void> => {
     if (todos.filter((existingTodo: ITodo) => existingTodo.name === text).length > 0) {
       alert('This todo already exists');
 
       return;
     }
 
-    const newTodo: ITodo = {
-      id: new Date().getTime(),
-      name: text,
-      done: false,
-    };
+    try {
+      const currentUser = await firebase.auth().currentUser;
 
-    setTodos([...todos, newTodo]);
-    setText('');
+      await dbh.collection('tasks').add({
+        name: text,
+        done: false,
+        created_at: new Date(),
+        userUID: currentUser.uid,
+      });
 
-    AsyncStorage.setItem('todos', JSON.stringify(todos));
+      setText('');
 
-    Toast.show({
-      text: 'Todo Added !',
-      buttonText: 'Okay',
-      buttonTextStyle: { color: '#008000' },
-      buttonStyle: { backgroundColor: '#5cb85c' },
-    });
+      showToast(ToastType.SUCCESS, 'Todo Added !');
+    } catch (e) {
+      showToast(ToastType.ERROR, e.message);
+    }
   };
 
   const confirmDeleteAllTodos = (): void => {
@@ -62,49 +85,35 @@ export default function TodoScreen(): JSX.Element {
     );
   };
 
-  const deleteAllTodos = (): void => {
-    setTodos([]);
-
-    AsyncStorage.setItem('todos', JSON.stringify([]));
-
-    Toast.show({
-      text: 'All Todos deleted !',
-      buttonText: 'Okay',
-      buttonTextStyle: { color: '#008000' },
-      buttonStyle: { backgroundColor: '#5cb85c' },
-    });
+  const deleteAllTodos = async (): Promise<void> => {
+    // @Todo
+    // try {
+    //   const currentUser = await firebase.auth().currentUser;
+    //
+    //   const docs = await dbh.collection('tasks').where('userUID', '==', currentUser.uid).get();
+    //
+    //   docs.forEach(doc => doc.remove());
+    //
+    //   showToast(ToastType.SUCCESS, 'All Todos deleted !');
+    // } catch (e) {
+    //   showToast(ToastType.ERROR, e.message);
+    // }
   };
 
-  const deleteTodo = (id: number): void => {
-    const todosToKeep = todos.filter((existingTodo: ITodo) => existingTodo.id !== id);
+  const deleteTodo = async (id: string): Promise<void> => {
+    await dbh.collection('tasks').doc(id).delete();
 
-    setTodos(todosToKeep);
-
-    AsyncStorage.setItem('todos', JSON.stringify(todosToKeep));
-
-    Toast.show({
-      text: 'Deleted 1 Todo !',
-      buttonText: 'Okay',
-      buttonTextStyle: { color: '#008000' },
-      buttonStyle: { backgroundColor: '#5cb85c' },
-    });
+    showToast(ToastType.SUCCESS, 'Deleted 1 Todo !');
   };
 
-  const todoToggleDone = (id: number): void => {
-    const newTodos = todos.map((existingTodo: ITodo) => (
-      existingTodo.id === id ? {...existingTodo, done: !existingTodo.done} :  existingTodo
-    ));
+  const todoToggleDone = async (id: string): Promise<void> => {
+    const currentDone = todos.find(t => t.id === id).done;
 
-    setTodos(newTodos);
-
-    AsyncStorage.setItem('todos', JSON.stringify(newTodos));
-
-    Toast.show({
-      text: 'Todo done/undone !',
-      buttonText: 'Okay',
-      buttonTextStyle: { color: '#008000' },
-      buttonStyle: { backgroundColor: '#5cb85c' },
+    await dbh.collection('tasks').doc(id).set({
+      done: !currentDone,
     });
+
+    showToast(ToastType.SUCCESS, `Todo ${currentDone ? 'undone' : 'done'}`);
   };
 
   return (
